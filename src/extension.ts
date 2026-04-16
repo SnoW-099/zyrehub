@@ -5,12 +5,10 @@ import { GitHubAPI } from './core/github_api';
 import { Validator } from './core/validator';
 import { SmartCommit } from './core/smart_commit';
 import { GistManager } from './core/gist_manager';
-import { TodoProvider } from './ui/todo_explorer';
 import { ReadmeWizard } from './ui/readme_wizard';
 import { DashboardProvider } from './ui/dashboard_provider';
-import { QuickActionsProvider } from './ui/quick_actions_provider';
-import { ProjectHealthProvider } from './ui/project_health_provider';
 import { WelcomeProvider } from './ui/welcome_provider';
+import { SidebarProvider } from './ui/sidebar_provider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('ZyreHub Pro is now active!');
@@ -168,29 +166,15 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     // --- 5. Sidebar UI Providers ---
+    const sidebarProvider = new SidebarProvider(context.extensionUri);
+    vscode.window.registerWebviewViewProvider(SidebarProvider.viewType, sidebarProvider);
 
-    // Quick Actions panel
-    const quickActionsProvider = new QuickActionsProvider();
-    vscode.window.registerTreeDataProvider('zyrehubQuickActions', quickActionsProvider);
-
-    // Project Health panel
-    const healthProvider = new ProjectHealthProvider(workspaceRoot);
-    vscode.window.registerTreeDataProvider('zyrehubProjectHealth', healthProvider);
-    const refreshHealthCmd = vscode.commands.registerCommand('zyrehub.refreshHealth', () => healthProvider.refresh());
-
-    // Auto-refresh project health when files are saved/created/deleted
+    // Auto-refresh sidebar UI when files are saved/created/deleted
     const fileWatcher = vscode.workspace.createFileSystemWatcher('**/*');
-    fileWatcher.onDidCreate(() => healthProvider.refresh());
-    fileWatcher.onDidDelete(() => healthProvider.refresh());
-    const saveListener = vscode.workspace.onDidSaveTextDocument(() => healthProvider.refresh());
-
-    // TODO Explorer panel
-    const todoProvider = new TodoProvider(workspaceRoot);
-    vscode.window.registerTreeDataProvider('zyrehubTodoExplorer', todoProvider);
-    const refreshTodosCmd = vscode.commands.registerCommand('zyrehub.refreshTodos', () => todoProvider.refresh());
-
-    // Auto-refresh TODOs when files are saved
-    const todoSaveListener = vscode.workspace.onDidSaveTextDocument(() => todoProvider.refresh());
+    fileWatcher.onDidCreate(() => sidebarProvider.updateWebview());
+    fileWatcher.onDidDelete(() => sidebarProvider.updateWebview());
+    const saveListener = vscode.workspace.onDidSaveTextDocument(() => sidebarProvider.updateWebview());
+    const folderListener = vscode.workspace.onDidChangeWorkspaceFolders(() => sidebarProvider.updateWebview());
 
     // README Wizard
     const readmeWizardCommand = vscode.commands.registerCommand('zyrehub.readmeWizard', () => {
@@ -206,11 +190,9 @@ export function activate(context: vscode.ExtensionContext) {
         securityCommand, 
         fastFixCommand, 
         readmeWizardCommand,
-        refreshHealthCmd,
-        refreshTodosCmd,
         fileWatcher,
         saveListener,
-        todoSaveListener
+        folderListener
     );
 }
 

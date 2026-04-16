@@ -83,39 +83,12 @@
     "views": {
       "zyrehub-explorer": [
         {
-          "id": "zyrehubQuickActions",
-          "name": "Quick Actions",
-          "icon": "$(zap)"
-        },
-        {
-          "id": "zyrehubProjectHealth",
-          "name": "Project Health",
-          "icon": "$(heart)"
-        },
-        {
-          "id": "zyrehubTodoExplorer",
-          "name": "TODO Explorer",
-          "icon": "$(checklist)"
+          "type": "webview",
+          "id": "zyrehub.sidebar.main",
+          "name": "ZyreHub Hub"
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "zyrehubQuickActions",
-        "contents": "Open a folder to unlock ZyreHub tools.\n[Open Folder](command:vscode.openFolder)",
-        "when": "workbenchState == empty"
-      },
-      {
-        "view": "zyrehubProjectHealth",
-        "contents": "Open a folder to see project health.\n[Open Folder](command:vscode.openFolder)",
-        "when": "workbenchState == empty"
-      },
-      {
-        "view": "zyrehubTodoExplorer",
-        "contents": "Open a folder to scan for TODOs.\n[Open Folder](command:vscode.openFolder)",
-        "when": "workbenchState == empty"
-      }
-    ],
     "commands": [
       {
         "command": "zyrehub.showWelcome",
