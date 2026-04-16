@@ -73,17 +73,17 @@
       "zyrehub-explorer": [
         {
           "id": "zyrehubQuickActions",
-          "name": "⚡ Quick Actions",
+          "name": "Quick Actions",
           "icon": "$(zap)"
         },
         {
           "id": "zyrehubProjectHealth",
-          "name": "💚 Project Health",
+          "name": "Project Health",
           "icon": "$(heart)"
         },
         {
           "id": "zyrehubTodoExplorer",
-          "name": "✅ TODO Explorer",
+          "name": "TODO Explorer",
           "icon": "$(checklist)"
         }
       ]

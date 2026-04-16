@@ -36,23 +36,25 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
     // --- Project Stats ---
     const stats = this.getProjectStats();
     const statsItem = new HealthItem(
-      `📊 Project Stats`,
+      `Project Stats`,
       vscode.TreeItemCollapsibleState.Expanded,
       'project',
       undefined
     );
     statsItem.children = [
       new HealthItem(
-        `${stats.totalFiles.toLocaleString()} files`,
+        `Files`,
         vscode.TreeItemCollapsibleState.None,
         'file',
-        'file'
+        'file',
+        `${stats.totalFiles.toLocaleString()}`
       ),
       new HealthItem(
-        `${stats.totalLines.toLocaleString()} lines of code`,
+        `Lines of code`,
         vscode.TreeItemCollapsibleState.None,
         'code',
-        'code'
+        'code',
+        `${stats.totalLines.toLocaleString()}`
       ),
     ];
 
@@ -63,17 +65,18 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     if (topLangs.length > 0) {
       const langsItem = new HealthItem(
-        `🏆 Top Languages`,
+        `Top Languages`,
         vscode.TreeItemCollapsibleState.Collapsed,
         'symbol-class',
         undefined
       );
       langsItem.children = topLangs.map(([ext, count]) =>
         new HealthItem(
-          `${ext} — ${count} files`,
+          `${ext}`,
           vscode.TreeItemCollapsibleState.None,
           'symbol-file',
-          'symbol-file'
+          'symbol-file',
+          `${count} files`
         )
       );
       statsItem.children.push(langsItem);
@@ -83,7 +86,7 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     // --- Validation ---
     const validationItem = new HealthItem(
-      `🩺 Validation`,
+      `Validation`,
       vscode.TreeItemCollapsibleState.Expanded,
       'beaker',
       undefined
@@ -92,35 +95,39 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     const hasReadme = fs.existsSync(path.join(this.workspaceRoot, 'README.md'));
     validationChildren.push(new HealthItem(
-      hasReadme ? '✅ README.md found' : '⚠️ README.md missing',
+      `README.md`,
       vscode.TreeItemCollapsibleState.None,
       hasReadme ? 'pass' : 'warning',
-      hasReadme ? 'pass' : 'warning'
+      hasReadme ? 'pass' : 'warning',
+      hasReadme ? 'Found' : 'Missing'
     ));
 
     const hasGitignore = fs.existsSync(path.join(this.workspaceRoot, '.gitignore'));
     validationChildren.push(new HealthItem(
-      hasGitignore ? '✅ .gitignore found' : '⚠️ .gitignore missing',
+      `.gitignore`,
       vscode.TreeItemCollapsibleState.None,
       hasGitignore ? 'pass' : 'warning',
-      hasGitignore ? 'pass' : 'warning'
+      hasGitignore ? 'pass' : 'warning',
+      hasGitignore ? 'Found' : 'Missing'
     ));
 
     const hasPackageJson = fs.existsSync(path.join(this.workspaceRoot, 'package.json'));
     validationChildren.push(new HealthItem(
-      hasPackageJson ? '✅ package.json found' : 'ℹ️ No package.json',
+      `package.json`,
       vscode.TreeItemCollapsibleState.None,
       hasPackageJson ? 'pass' : 'info',
-      hasPackageJson ? 'pass' : 'info'
+      hasPackageJson ? 'pass' : 'info',
+      hasPackageJson ? 'Found' : 'Missing'
     ));
 
     const hasLicense = fs.existsSync(path.join(this.workspaceRoot, 'LICENSE')) ||
                        fs.existsSync(path.join(this.workspaceRoot, 'LICENSE.md'));
     validationChildren.push(new HealthItem(
-      hasLicense ? '✅ LICENSE found' : '⚠️ LICENSE missing',
+      `LICENSE`,
       vscode.TreeItemCollapsibleState.None,
       hasLicense ? 'pass' : 'warning',
-      hasLicense ? 'pass' : 'warning'
+      hasLicense ? 'pass' : 'warning',
+      hasLicense ? 'Found' : 'Missing'
     ));
 
     validationItem.children = validationChildren;
@@ -128,7 +135,7 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     // --- Security ---
     const securityItem = new HealthItem(
-      `🛡️ Security`,
+      `Security`,
       vscode.TreeItemCollapsibleState.Expanded,
       'shield',
       undefined
@@ -147,19 +154,21 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
     if (threats.length === 0) {
       securityItem.children = [
         new HealthItem(
-          '✅ No sensitive files exposed',
+          'Sensitive files',
           vscode.TreeItemCollapsibleState.None,
           'pass',
-          'pass'
+          'pass',
+          'None exposed'
         ),
       ];
     } else {
       securityItem.children = threats.map(t =>
         new HealthItem(
-          `❗ Exposed: ${t}`,
+          `Exposed`,
           vscode.TreeItemCollapsibleState.None,
           'error',
-          'error'
+          'error',
+          `${t}`
         )
       );
     }
@@ -168,7 +177,7 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     // --- Potential Issues / Code Smells ---
     const issuesItem = new HealthItem(
-      `⚠️ Potential Issues`,
+      `Potential Issues`,
       vscode.TreeItemCollapsibleState.Expanded,
       'warning',
       undefined
@@ -179,17 +188,19 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
     const testFiles = await vscode.workspace.findFiles('**/*.{test,spec}.{ts,js,jsx,tsx}', '**/node_modules/**');
     if (testFiles.length === 0) {
       issueChildren.push(new HealthItem(
-        '⚠️ No unit tests detected',
+        'Unit tests',
         vscode.TreeItemCollapsibleState.None,
         'beaker',
-        'beaker'
+        'beaker',
+        'None detected'
       ));
     } else {
       issueChildren.push(new HealthItem(
-        `✅ Tests found (${testFiles.length} files)`,
+        `Unit tests`,
         vscode.TreeItemCollapsibleState.None,
         'pass',
-        'pass'
+        'pass',
+        `Found ${testFiles.length} files`
       ));
     }
 
@@ -199,18 +210,20 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
         const pkg = JSON.parse(fs.readFileSync(path.join(this.workspaceRoot, 'package.json'), 'utf8'));
         if (!pkg.description || pkg.description.trim() === '') {
           issueChildren.push(new HealthItem(
-            '⚠️ package.json missing description',
+            'package.json',
             vscode.TreeItemCollapsibleState.None,
             'warning',
-            'warning'
+            'warning',
+            'Missing description'
           ));
         }
         if (!pkg.author || pkg.author.trim() === '') {
           issueChildren.push(new HealthItem(
-            '⚠️ package.json missing author',
+            'package.json',
             vscode.TreeItemCollapsibleState.None,
             'warning',
-            'warning'
+            'warning',
+            'Missing author'
           ));
         }
       } catch (e) {}
@@ -218,10 +231,11 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     if (issueChildren.length === 0) {
       issueChildren.push(new HealthItem(
-        '✅ No potential issues found',
+        'Potential issues',
         vscode.TreeItemCollapsibleState.None,
         'pass',
-        'pass'
+        'pass',
+        'None found'
       ));
     } else {
       issuesItem.children = issueChildren;
@@ -273,11 +287,15 @@ export class HealthItem extends vscode.TreeItem {
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     iconId: string,
-    themeIconId?: string
+    themeIconId?: string,
+    description?: string
   ) {
     super(label, collapsibleState);
     if (themeIconId) {
       this.iconPath = new vscode.ThemeIcon(themeIconId);
+    }
+    if (description) {
+      this.description = description;
     }
   }
 }

@@ -93,10 +93,11 @@ export class TodoProvider implements vscode.TreeDataProvider<TodoNode> {
 
     if (fileMap.size === 0) {
       const emptyItem = new TodoNode(
-        'No TODOs found — your code is clean! 🎉',
+        'No TODOs found',
         vscode.TreeItemCollapsibleState.None
       );
       emptyItem.iconPath = new vscode.ThemeIcon('pass');
+      emptyItem.description = 'Code is clean';
       return [emptyItem];
     }
 
