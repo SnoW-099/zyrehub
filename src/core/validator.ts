@@ -1,9 +1,22 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
+import * as util from 'util';
+
+const execAsync = util.promisify(exec);
 
 export interface ValidationResult {
   valid: boolean;
   warnings: string[];
+}
+
+export interface AuditResult {
+  vulnerabilities: number;
+  low: number;
+  moderate: number;
+  high: number;
+  critical: number;
+  error?: string;
 }
 
 export class Validator {
@@ -11,6 +24,37 @@ export class Validator {
 
   constructor(projectPath: string) {
     this.projectPath = projectPath;
+  }
+
+  public async auditDependencies(): Promise<AuditResult | null> {
+    const pkgPath = path.join(this.projectPath, 'package.json');
+    if (!fs.existsSync(pkgPath)) return null;
+
+    try {
+      const { stdout } = await execAsync('npm audit --json', { cwd: this.projectPath });
+      return this.parseAuditJson(stdout);
+    } catch (e: any) {
+      if (e.stdout) {
+        return this.parseAuditJson(e.stdout);
+      }
+      return { vulnerabilities: -1, low: 0, moderate: 0, high: 0, critical: 0, error: 'Audit failed to run.' };
+    }
+  }
+
+  private parseAuditJson(output: string): AuditResult {
+    try {
+      const data = JSON.parse(output);
+      const vulns = data.metadata?.vulnerabilities || { low: 0, moderate: 0, high: 0, critical: 0, total: 0 };
+      return {
+        vulnerabilities: vulns.total,
+        low: vulns.low,
+        moderate: vulns.moderate,
+        high: vulns.high,
+        critical: vulns.critical
+      };
+    } catch (e) {
+      return { vulnerabilities: -1, low: 0, moderate: 0, high: 0, critical: 0, error: 'JSON parsing failed.' };
+    }
   }
 
   public validate(): ValidationResult {

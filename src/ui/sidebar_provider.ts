@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import { Validator } from '../core/validator';
+import { TimeTracker } from '../core/time_tracker';
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'zyrehub.sidebar.main';
@@ -21,7 +22,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [this._extensionUri]
     };
 
-    webviewView.webview.html = this.getHtmlForWebview();
+    this.updateWebview();
 
     webviewView.webview.onDidReceiveMessage(async (data) => {
       switch (data.command) {
@@ -57,17 +58,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     this.updateWebview();
   }
 
-  public updateWebview() {
+  public postMessage(message: any) {
     if (this._view) {
-      this._view.webview.html = this.getHtmlForWebview();
+      this._view.webview.postMessage(message);
     }
   }
 
-  private getHtmlForWebview(): string {
+  public async updateWebview() {
+    if (this._view) {
+      this._view.webview.html = await this.getHtmlForWebview();
+    }
+  }
+
+  private async getHtmlForWebview(): Promise<string> {
     const config = vscode.workspace.getConfiguration('zyrehub');
     const existingToken = config.get<string>('githubToken') || '';
     const workspaceFolders = vscode.workspace.workspaceFolders;
     const hasFolder = !!(workspaceFolders && workspaceFolders.length > 0);
+
+    const timeTracker = TimeTracker.getInstance();
+    const sessionTime = timeTracker.getFormattedSessionTime();
 
     // Dynamic metrics if folder is open
     let healthSubtitle = 'No folder open';
@@ -79,9 +89,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       const validator = new Validator(rootPath);
       const valResult = validator.validate();
       const threats = validator.checkSecurity();
+      const audit = await validator.auditDependencies();
 
-      const issuesCount = valResult.warnings.length + threats.length;
-      healthSubtitle = issuesCount === 0 ? 'Clean workspace' : `${issuesCount} warnings found`;
+      let issuesCount = valResult.warnings.length + threats.length;
+      let auditMsg = '';
+      if (audit && audit.vulnerabilities > 0) {
+        issuesCount += audit.vulnerabilities;
+        auditMsg = `<br><span style="color:#d32f2f;">🔥 ${audit.vulnerabilities} vulnerable dependencies</span>`;
+      }
+
+      healthSubtitle = issuesCount === 0 ? 'Clean workspace' : `${issuesCount} warnings found${auditMsg}`;
 
       todoSubtitle = 'Scanning complete';
       
@@ -147,6 +164,18 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             font-size: 16px;
             font-weight: 600;
             margin: 0;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .time-badge {
+            font-size: 11px;
+            color: var(--zh-subtext);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .pro-badge {
             background-color: var(--zh-purple-bg);
@@ -298,7 +327,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <div class="logo-box">ZH</div>
             <h1 class="title">ZyreHub</h1>
         </div>
-        <div class="pro-badge">PRO</div>
+        <div class="header-right">
+            <span class="time-badge" id="session-time">⏱️ ${sessionTime}</span>
+            <div class="pro-badge">PRO</div>
+        </div>
     </div>
 
     <!-- Token Box -->
@@ -347,6 +379,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     <script>
         const vscode = acquireVsCodeApi();
+
+        window.addEventListener('message', event => {
+            const message = event.data;
+            if (message.command === 'updateTime') {
+                document.getElementById('session-time').innerText = '⏱️ ' + message.time;
+            }
+        });
 
         document.getElementById('save-btn').addEventListener('click', () => {
             const token = document.getElementById('gh-token').value;

@@ -4,6 +4,7 @@ import { GitManager } from './core/git_manager';
 import { GitHubAPI } from './core/github_api';
 import { Validator } from './core/validator';
 import { SmartCommit } from './core/smart_commit';
+import { TimeTracker } from './core/time_tracker';
 import { GistManager } from './core/gist_manager';
 import { ReadmeWizard } from './ui/readme_wizard';
 import { DashboardProvider } from './ui/dashboard_provider';
@@ -168,6 +169,12 @@ export function activate(context: vscode.ExtensionContext) {
     // --- 5. Sidebar UI Providers ---
     const sidebarProvider = new SidebarProvider(context.extensionUri);
     vscode.window.registerWebviewViewProvider(SidebarProvider.viewType, sidebarProvider);
+
+    const timeTracker = TimeTracker.getInstance();
+    const timeInterval = setInterval(() => {
+        const timeStr = timeTracker.getFormattedSessionTime();
+        sidebarProvider.postMessage({ command: 'updateTime', time: timeStr });
+    }, 60000); // refresh every minute
 
     // Auto-refresh sidebar UI when files are saved/created/deleted
     const fileWatcher = vscode.workspace.createFileSystemWatcher('**/*');
