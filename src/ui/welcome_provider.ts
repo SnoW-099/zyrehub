@@ -193,19 +193,19 @@ export class WelcomeProvider {
 
         <div class="features">
             <div class="feature-card">
-                <h3>⚡ Smart Sync</h3>
+                <h3>Smart Sync</h3>
                 <p>One-click Git automation. ZyreHub stages your files, generates an intelligent commit message, and pushes to remote.</p>
             </div>
             <div class="feature-card">
-                <h3>💚 Project Health</h3>
+                <h3>Project Health</h3>
                 <p>A real-time dashboard tracking your code's quality, exposing missing tests, missing config files, and detecting security leaks.</p>
             </div>
             <div class="feature-card">
-                <h3>✅ Interactive TODOs</h3>
+                <h3>Interactive TODOs</h3>
                 <p>Never lose a TODO again. We scan your entire workspace for FIXME, DEBUG, and HACK tags and group them elegantly.</p>
             </div>
             <div class="feature-card">
-                <h3>✨ Fast Fix</h3>
+                <h3>Fast Fix</h3>
                 <p>Instantly format your file by trimming trailing whitespaces and enforcing clean EOF newlines with a single command.</p>
             </div>
         </div>
