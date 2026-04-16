@@ -3,13 +3,20 @@ import { GitManager } from './core/git_manager';
 import { GitHubAPI } from './core/github_api';
 import { Validator } from './core/validator';
 import { SmartCommit } from './core/smart_commit';
+import { GistManager } from './core/gist_manager';
 import { TodoProvider } from './ui/todo_explorer';
 import { ReadmeWizard } from './ui/readme_wizard';
+import { DashboardProvider } from './ui/dashboard_provider';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('ZyreHub is now active!');
+    console.log('ZyreHub Pro is now active!');
 
-    // --- 1. Git & GitHub Sync ---
+    // --- 1. Dashboard & Home ---
+    const dashboardCommand = vscode.commands.registerCommand('zyrehub.openDashboard', () => {
+        DashboardProvider.show(context.extensionUri);
+    });
+
+    // --- 2. Git & GitHub Sync ---
     const syncCommand = vscode.commands.registerCommand('zyrehub.sync', async () => {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
@@ -62,8 +69,12 @@ export function activate(context: vscode.ExtensionContext) {
                 if (createRemote === 'Yes') {
                     const repoName = await vscode.window.showInputBox({ prompt: 'Repo name', value: 'MyProject' });
                     if (repoName) {
-                        const repo = await github.createRepository(repoName);
-                        await git.addRemote('origin', repo.clone_url);
+                        try {
+                            const repo = await github.createRepository(repoName);
+                            await git.addRemote('origin', repo.clone_url);
+                        } catch (e: any) {
+                            vscode.window.showErrorMessage(e.message);
+                        }
                     }
                 }
             }
@@ -74,7 +85,38 @@ export function activate(context: vscode.ExtensionContext) {
         });
     });
 
-    // --- 2. Quality & Security ---
+    // --- 3. Sharing & Gists ---
+    const shareGistCommand = vscode.commands.registerCommand('zyrehub.shareGist', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+
+        const selection = editor.document.getText(editor.selection);
+        if (!selection) {
+            vscode.window.showWarningMessage('Please select some code to share.');
+            return;
+        }
+
+        const config = vscode.workspace.getConfiguration('zyrehub');
+        let token = config.get<string>('githubToken');
+        if (!token) {
+            vscode.window.showErrorMessage('GitHub Token is required for Gists.');
+            return;
+        }
+
+        const gistManager = new GistManager(token);
+        const filename = path.basename(editor.document.fileName);
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "ZyreHub: Creating Gist...",
+            cancellable: false
+        }, async () => {
+            const gist = await gistManager.createGist(filename, selection);
+            vscode.window.showInformationMessage(`Gist created! [Open Gist](${gist.html_url})`);
+        });
+    });
+
+    // --- 4. Quality & Security ---
     const validateCommand = vscode.commands.registerCommand('zyrehub.validate', () => {
         const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!root) return;
@@ -98,16 +140,17 @@ export function activate(context: vscode.ExtensionContext) {
     const fastFixCommand = vscode.commands.registerCommand('zyrehub.fastFix', async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) return;
-        const text = editor.document.getText();
+        const document = editor.document;
+        const text = document.getText();
         const cleaned = text.replace(/[ \t]+$/gm, '');
         const final = cleaned.endsWith('\n') ? cleaned : cleaned + '\n';
         if (text !== final) {
-            await editor.edit(b => b.replace(new vscode.Range(0, 0, editor.document.lineCount, 0), final));
+            await editor.edit(b => b.replace(new vscode.Range(0, 0, document.lineCount, 0), final));
             vscode.window.showInformationMessage('ZyreHub: File cleaned!');
         }
     });
 
-    // --- 3. UI Providers ---
+    // --- 5. UI Providers ---
     const todoProvider = new TodoProvider(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
     vscode.window.registerTreeDataProvider('zyrehubTodoExplorer', todoProvider);
     
@@ -118,7 +161,9 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(
+        dashboardCommand,
         syncCommand, 
+        shareGistCommand,
         validateCommand, 
         securityCommand, 
         fastFixCommand, 
@@ -126,5 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
         refreshTodos
     );
 }
+
+import * as path from 'path';
 
 export function deactivate() {}

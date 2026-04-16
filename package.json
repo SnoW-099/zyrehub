@@ -2,7 +2,7 @@
   "name": "zyrehub",
   "displayName": "ZyreHub",
   "description": "The ultimate developer assistant: Smart Git, QoL tools, and minimalist design.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "snow-099",
   "icon": "Assets/logo.png",
   "engines": {
@@ -18,6 +18,8 @@
     "onCommand:zyrehub.validate",
     "onCommand:zyrehub.readmeWizard",
     "onCommand:zyrehub.fastFix",
+    "onCommand:zyrehub.openDashboard",
+    "onCommand:zyrehub.shareGist",
     "onView:zyrehubTodoExplorer"
   ],
   "main": "./out/extension.js",
@@ -27,6 +29,33 @@
         "label": "ZyreHub Night Sky",
         "uiTheme": "vs-dark",
         "path": "./themes/zyrehub-color-theme.json"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "zyrehub-getting-started",
+        "title": "Welcome to ZyreHub Pro!",
+        "description": "Learn how to automate your workflow in seconds.",
+        "steps": [
+          {
+            "id": "setup",
+            "title": "Initial Setup",
+            "description": "Configure your GitHub token to unlock all Pro features. [Configure Settings](command:workbench.action.openSettings?%22zyrehub.githubToken%22)",
+            "media": {
+              "svg": "Assets/logo.png",
+              "altText": "ZyreHub Logo"
+            }
+          },
+          {
+            "id": "first-sync",
+            "title": "Smart Sync",
+            "description": "Try your first automated commit and push. ZyreHub will handle everything. [Run Sync](command:zyrehub.sync)",
+            "media": {
+              "svg": "Assets/logo.png",
+              "altText": "ZyreHub Logo"
+            }
+          }
+        ]
       }
     ],
     "viewsContainers": {
@@ -48,6 +77,16 @@
       ]
     },
     "commands": [
+      {
+        "command": "zyrehub.openDashboard",
+        "title": "ZyreHub: Open Pro Dashboard",
+        "category": "ZyreHub"
+      },
+      {
+        "command": "zyrehub.shareGist",
+        "title": "ZyreHub: Share selection as Gist",
+        "category": "ZyreHub"
+      },
       {
         "command": "zyrehub.sync",
         "title": "ZyreHub: Sync Repository",
@@ -92,7 +131,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
@@ -100,7 +140,8 @@
     "typescript": "^5.1.3",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
-    "eslint": "^8.41.0"
+    "eslint": "^8.41.0",
+    "@vscode/vsce": "^2.19.0"
   },
   "dependencies": {
     "octokit": "^2.0.14",
