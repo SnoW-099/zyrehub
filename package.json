@@ -1,16 +1,25 @@
 {
   "name": "zyrehub",
   "displayName": "ZyreHub",
-  "description": "Quality of Life features and a minimal dark theme for developers",
-  "version": "0.0.1",
+  "description": "The ultimate developer assistant: Smart Git, QoL tools, and minimalist design.",
+  "version": "1.0.0",
+  "publisher": "snow-099",
+  "icon": "Assets/logo.png",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
     "Themes",
-    "Other"
+    "Other",
+    "Programming Languages"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:zyrehub.sync",
+    "onCommand:zyrehub.validate",
+    "onCommand:zyrehub.readmeWizard",
+    "onCommand:zyrehub.fastFix",
+    "onView:zyrehubTodoExplorer"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "themes": [
@@ -20,16 +29,62 @@
         "path": "./themes/zyrehub-color-theme.json"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zyrehub-explorer",
+          "title": "ZyreHub",
+          "icon": "$(rocket)"
+        }
+      ]
+    },
+    "views": {
+      "zyrehub-explorer": [
+        {
+          "id": "zyrehubTodoExplorer",
+          "name": "TODO Explorer",
+          "icon": "$(checklist)"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "zyrehub.fastFix",
-        "title": "ZyreHub: Fast Fix (Format & Clean)"
+        "command": "zyrehub.sync",
+        "title": "ZyreHub: Sync Repository",
+        "category": "ZyreHub"
       },
       {
-        "command": "zyrehub.quickCommit",
-        "title": "ZyreHub: Quick Commit"
+        "command": "zyrehub.validate",
+        "title": "ZyreHub: Project Health Check",
+        "category": "ZyreHub"
+      },
+      {
+        "command": "zyrehub.securityCheck",
+        "title": "ZyreHub: Run Security Audit",
+        "category": "ZyreHub"
+      },
+      {
+        "command": "zyrehub.readmeWizard",
+        "title": "ZyreHub: README Wizard",
+        "category": "ZyreHub"
+      },
+      {
+        "command": "zyrehub.fastFix",
+        "title": "ZyreHub: Fast Fix (Format & Clean)",
+        "category": "ZyreHub"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "ZyreHub",
+      "properties": {
+        "zyrehub.githubToken": {
+          "type": "string",
+          "default": "",
+          "description": "GitHub Personal Access Token for remote repository management.",
+          "scope": "application"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -46,5 +101,9 @@
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
     "eslint": "^8.41.0"
+  },
+  "dependencies": {
+    "octokit": "^2.0.14",
+    "simple-git": "^3.16.0"
   }
 }
