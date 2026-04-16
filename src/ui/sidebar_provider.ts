@@ -95,7 +95,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       let issuesCount = valResult.warnings.length + threats.length;
       if (audit && audit.vulnerabilities > 0) {
         issuesCount += audit.vulnerabilities;
-        auditMsg = `🔥 ${audit.vulnerabilities} vulnerable dependencies`;
+        auditMsg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>${audit.vulnerabilities} vulnerable dependencies`;
       }
 
       healthSubtitle = issuesCount === 0 ? 'Clean workspace' : `${issuesCount} warnings found`;
@@ -345,7 +345,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <h1 class="title">ZyreHub</h1>
         </div>
         <div class="header-right">
-            <span class="time-badge" id="session-time">⏱️ ${sessionTime}</span>
+            <span class="time-badge" id="session-time">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                ${sessionTime}
+            </span>
         </div>
     </div>
 
@@ -361,10 +364,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     <p class="section-title">Quick Actions</p>
     <div class="actions-grid">
-        <button class="action-btn" id="btn-sync">🌩️ Sync</button>
-        <button class="action-btn" id="btn-health">💚 Health</button>
-        <button class="action-btn" id="btn-security">🛡️ Audit</button>
-        <button class="action-btn" id="btn-format">✨ Fix</button>
+        <button class="action-btn" id="btn-sync">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path><path d="M3 22v-6h6"></path><path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path></svg>
+            Sync
+        </button>
+        <button class="action-btn" id="btn-health">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            Health
+        </button>
+        <button class="action-btn" id="btn-security">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Audit
+        </button>
+        <button class="action-btn" id="btn-format">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Fix
+        </button>
     </div>
 
     <p class="section-title">Workspace</p>
@@ -407,7 +422,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         window.addEventListener('message', event => {
             const message = event.data;
             if (message.command === 'updateTime') {
-                document.getElementById('session-time').innerText = '⏱️ ' + message.time;
+                const badge = document.getElementById('session-time');
+                badge.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ' + message.time;
             }
         });
 
