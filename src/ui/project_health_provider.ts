@@ -166,6 +166,68 @@ export class ProjectHealthProvider implements vscode.TreeDataProvider<HealthItem
 
     items.push(securityItem);
 
+    // --- Potential Issues / Code Smells ---
+    const issuesItem = new HealthItem(
+      `⚠️ Potential Issues`,
+      vscode.TreeItemCollapsibleState.Expanded,
+      'warning',
+      undefined
+    );
+    const issueChildren: HealthItem[] = [];
+
+    // 1. Check for tests
+    const testFiles = await vscode.workspace.findFiles('**/*.{test,spec}.{ts,js,jsx,tsx}', '**/node_modules/**');
+    if (testFiles.length === 0) {
+      issueChildren.push(new HealthItem(
+        '⚠️ No unit tests detected',
+        vscode.TreeItemCollapsibleState.None,
+        'beaker',
+        'beaker'
+      ));
+    } else {
+      issueChildren.push(new HealthItem(
+        `✅ Tests found (${testFiles.length} files)`,
+        vscode.TreeItemCollapsibleState.None,
+        'pass',
+        'pass'
+      ));
+    }
+
+    // 2. package.json details
+    if (hasPackageJson) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(this.workspaceRoot, 'package.json'), 'utf8'));
+        if (!pkg.description || pkg.description.trim() === '') {
+          issueChildren.push(new HealthItem(
+            '⚠️ package.json missing description',
+            vscode.TreeItemCollapsibleState.None,
+            'warning',
+            'warning'
+          ));
+        }
+        if (!pkg.author || pkg.author.trim() === '') {
+          issueChildren.push(new HealthItem(
+            '⚠️ package.json missing author',
+            vscode.TreeItemCollapsibleState.None,
+            'warning',
+            'warning'
+          ));
+        }
+      } catch (e) {}
+    }
+
+    if (issueChildren.length === 0) {
+      issueChildren.push(new HealthItem(
+        '✅ No potential issues found',
+        vscode.TreeItemCollapsibleState.None,
+        'pass',
+        'pass'
+      ));
+    } else {
+      issuesItem.children = issueChildren;
+      items.push(issuesItem);
+    }
+
     return items;
   }
 

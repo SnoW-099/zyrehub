@@ -24,6 +24,24 @@ export class Validator {
       warnings.push('.gitignore is missing.');
     }
 
+    const pkgPath = path.join(this.projectPath, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (!pkg.description || pkg.description.trim() === '') {
+          warnings.push('package.json is missing a description.');
+        }
+        if (!pkg.author || pkg.author.trim() === '') {
+          warnings.push('package.json is missing an author.');
+        }
+      } catch (e) {}
+    }
+
+    const hasTests = this.hasTestFiles(this.projectPath);
+    if (!hasTests) {
+      warnings.push('No automated tests detected (.test.ts, .spec.js, etc).');
+    }
+
     this.checkLargeFiles(this.projectPath, warnings);
 
     return {
@@ -67,4 +85,23 @@ export class Validator {
       }
     } catch (e) {}
   }
+
+  private hasTestFiles(dir: string): boolean {
+    try {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        if (['node_modules', '.git', 'dist', 'out'].includes(file)) continue;
+        const filePath = path.join(dir, file);
+        const stats = fs.statSync(filePath);
+        if (stats.isDirectory()) {
+          if (file === 'test' || file === 'tests') return true;
+          if (this.hasTestFiles(filePath)) return true;
+        } else {
+          if (file.includes('.test.') || file.includes('.spec.')) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
 }
+
