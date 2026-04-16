@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { GitManager } from './core/git_manager';
 import { GitHubAPI } from './core/github_api';
 import { Validator } from './core/validator';
@@ -7,9 +8,13 @@ import { GistManager } from './core/gist_manager';
 import { TodoProvider } from './ui/todo_explorer';
 import { ReadmeWizard } from './ui/readme_wizard';
 import { DashboardProvider } from './ui/dashboard_provider';
+import { QuickActionsProvider } from './ui/quick_actions_provider';
+import { ProjectHealthProvider } from './ui/project_health_provider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('ZyreHub Pro is now active!');
+
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
     // --- 1. Dashboard & Home ---
     const dashboardCommand = vscode.commands.registerCommand('zyrehub.openDashboard', () => {
@@ -150,12 +155,32 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    // --- 5. UI Providers ---
-    const todoProvider = new TodoProvider(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
-    vscode.window.registerTreeDataProvider('zyrehubTodoExplorer', todoProvider);
-    
-    const refreshTodos = vscode.commands.registerCommand('zyrehub.refreshTodos', () => todoProvider.refresh());
+    // --- 5. Sidebar UI Providers ---
 
+    // Quick Actions panel
+    const quickActionsProvider = new QuickActionsProvider();
+    vscode.window.registerTreeDataProvider('zyrehubQuickActions', quickActionsProvider);
+
+    // Project Health panel
+    const healthProvider = new ProjectHealthProvider(workspaceRoot);
+    vscode.window.registerTreeDataProvider('zyrehubProjectHealth', healthProvider);
+    const refreshHealthCmd = vscode.commands.registerCommand('zyrehub.refreshHealth', () => healthProvider.refresh());
+
+    // Auto-refresh project health when files are saved/created/deleted
+    const fileWatcher = vscode.workspace.createFileSystemWatcher('**/*');
+    fileWatcher.onDidCreate(() => healthProvider.refresh());
+    fileWatcher.onDidDelete(() => healthProvider.refresh());
+    const saveListener = vscode.workspace.onDidSaveTextDocument(() => healthProvider.refresh());
+
+    // TODO Explorer panel
+    const todoProvider = new TodoProvider(workspaceRoot);
+    vscode.window.registerTreeDataProvider('zyrehubTodoExplorer', todoProvider);
+    const refreshTodosCmd = vscode.commands.registerCommand('zyrehub.refreshTodos', () => todoProvider.refresh());
+
+    // Auto-refresh TODOs when files are saved
+    const todoSaveListener = vscode.workspace.onDidSaveTextDocument(() => todoProvider.refresh());
+
+    // README Wizard
     const readmeWizardCommand = vscode.commands.registerCommand('zyrehub.readmeWizard', () => {
         ReadmeWizard.show(context.extensionUri);
     });
@@ -168,10 +193,12 @@ export function activate(context: vscode.ExtensionContext) {
         securityCommand, 
         fastFixCommand, 
         readmeWizardCommand,
-        refreshTodos
+        refreshHealthCmd,
+        refreshTodosCmd,
+        fileWatcher,
+        saveListener,
+        todoSaveListener
     );
 }
-
-import * as path from 'path';
 
 export function deactivate() {}

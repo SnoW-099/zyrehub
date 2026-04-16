@@ -20,6 +20,8 @@
     "onCommand:zyrehub.fastFix",
     "onCommand:zyrehub.openDashboard",
     "onCommand:zyrehub.shareGist",
+    "onView:zyrehubQuickActions",
+    "onView:zyrehubProjectHealth",
     "onView:zyrehubTodoExplorer"
   ],
   "main": "./out/extension.js",
@@ -70,12 +72,39 @@
     "views": {
       "zyrehub-explorer": [
         {
+          "id": "zyrehubQuickActions",
+          "name": "⚡ Quick Actions",
+          "icon": "$(zap)"
+        },
+        {
+          "id": "zyrehubProjectHealth",
+          "name": "💚 Project Health",
+          "icon": "$(heart)"
+        },
+        {
           "id": "zyrehubTodoExplorer",
-          "name": "TODO Explorer",
+          "name": "✅ TODO Explorer",
           "icon": "$(checklist)"
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "zyrehubQuickActions",
+        "contents": "Open a folder to unlock ZyreHub tools.\n[Open Folder](command:vscode.openFolder)",
+        "when": "workbenchState == empty"
+      },
+      {
+        "view": "zyrehubProjectHealth",
+        "contents": "Open a folder to see project health.\n[Open Folder](command:vscode.openFolder)",
+        "when": "workbenchState == empty"
+      },
+      {
+        "view": "zyrehubTodoExplorer",
+        "contents": "Open a folder to scan for TODOs.\n[Open Folder](command:vscode.openFolder)",
+        "when": "workbenchState == empty"
+      }
+    ],
     "commands": [
       {
         "command": "zyrehub.openDashboard",
@@ -111,8 +140,32 @@
         "command": "zyrehub.fastFix",
         "title": "ZyreHub: Fast Fix (Format & Clean)",
         "category": "ZyreHub"
+      },
+      {
+        "command": "zyrehub.refreshHealth",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "zyrehub.refreshTodos",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "zyrehub.refreshHealth",
+          "when": "view == zyrehubProjectHealth",
+          "group": "navigation"
+        },
+        {
+          "command": "zyrehub.refreshTodos",
+          "when": "view == zyrehubTodoExplorer",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "ZyreHub",
       "properties": {
