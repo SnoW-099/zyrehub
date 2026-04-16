@@ -14,3 +14,7 @@ This is currently in development. You can run it locally by compiling the TypeSc
 
 ## Author
 ZyreHub was created to streamline dev workflows and provide an elegant minimalist look.
+
+
+## idea (s)
+la idea es una extension de vscode que tenga muchas funciones como poder hacer autofix rapido y sencillo tambien commit cosas relacionadas a git y etc
