@@ -2,7 +2,7 @@
   "name": "zyrehub",
   "displayName": "ZyreHub",
   "description": "The ultimate developer assistant: Smart Git, QoL tools, and minimalist design.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "snow-099",
   "icon": "Assets/logo.png",
   "repository": {
