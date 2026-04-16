@@ -10,9 +10,21 @@ import { ReadmeWizard } from './ui/readme_wizard';
 import { DashboardProvider } from './ui/dashboard_provider';
 import { QuickActionsProvider } from './ui/quick_actions_provider';
 import { ProjectHealthProvider } from './ui/project_health_provider';
+import { WelcomeProvider } from './ui/welcome_provider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('ZyreHub Pro is now active!');
+
+    // --- 0. Welcome Screen (Onboarding) ---
+    const showWelcomeCommand = vscode.commands.registerCommand('zyrehub.showWelcome', () => {
+        WelcomeProvider.show(context.extensionUri, context);
+    });
+
+    const hasShownWelcome = context.globalState.get<boolean>('zyrehub.hasShownWelcome');
+    if (!hasShownWelcome) {
+        vscode.commands.executeCommand('zyrehub.showWelcome');
+        context.globalState.update('zyrehub.hasShownWelcome', true);
+    }
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
@@ -186,6 +198,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(
+        showWelcomeCommand,
         dashboardCommand,
         syncCommand, 
         shareGistCommand,
