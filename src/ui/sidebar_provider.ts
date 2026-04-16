@@ -82,6 +82,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     // Dynamic metrics if folder is open
     let healthSubtitle = 'No folder open';
     let todoSubtitle = 'No folder open';
+    let auditMsg = '';
     let isFolderOpenHtml = ``;
 
     if (hasFolder) {
@@ -92,13 +93,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       const audit = await validator.auditDependencies();
 
       let issuesCount = valResult.warnings.length + threats.length;
-      let auditMsg = '';
       if (audit && audit.vulnerabilities > 0) {
         issuesCount += audit.vulnerabilities;
-        auditMsg = `<br><span style="color:#d32f2f;">🔥 ${audit.vulnerabilities} vulnerable dependencies</span>`;
+        auditMsg = `🔥 ${audit.vulnerabilities} vulnerable dependencies`;
       }
 
-      healthSubtitle = issuesCount === 0 ? 'Clean workspace' : `${issuesCount} warnings found${auditMsg}`;
+      healthSubtitle = issuesCount === 0 ? 'Clean workspace' : `${issuesCount} warnings found`;
 
       todoSubtitle = 'Scanning complete';
       
@@ -120,12 +120,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <style>
         :root {
             --zh-bg: var(--vscode-sideBar-background);
-            --zh-panel: var(--vscode-editorWidget-background);
-            --zh-border: var(--vscode-widget-border);
             --zh-text: var(--vscode-foreground);
             --zh-subtext: var(--vscode-descriptionForeground);
-            --zh-purple: #816ebf;
+            --zh-purple: #9d84e8;
             --zh-purple-bg: rgba(129, 110, 191, 0.15);
+            --zh-card-bg: var(--vscode-editorWidget-background, rgba(130, 130, 130, 0.04));
+            --zh-border: var(--vscode-widget-border, rgba(130, 130, 130, 0.1));
+            --zh-hover: var(--vscode-list-hoverBackground, rgba(130, 130, 130, 0.08));
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -133,6 +134,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             color: var(--zh-text);
             padding: 16px;
             margin: 0;
+            line-height: 1.4;
         }
 
         /* Header Style */
@@ -140,7 +142,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
         .header-left {
             display: flex;
@@ -152,168 +154,183 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             color: var(--zh-purple);
             border: 1px solid rgba(129, 110, 191, 0.3);
             border-radius: 8px;
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
         }
         .title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             margin: 0;
         }
         .header-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .time-badge {
             font-size: 11px;
             color: var(--zh-subtext);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .pro-badge {
-            background-color: var(--zh-purple-bg);
-            color: var(--zh-purple);
-            border: 1px solid rgba(129, 110, 191, 0.3);
-            font-size: 10px;
-            font-weight: 700;
+            background: var(--zh-card-bg);
+            border: 1px solid var(--zh-border);
             padding: 4px 8px;
-            border-radius: 4px;
-            letter-spacing: 1px;
+            border-radius: 12px;
         }
 
-        /* Token Box */
-        .token-box {
-            background-color: transparent;
-            border: 1px solid var(--zh-border);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 24px;
-        }
+        /* Sections */
         .section-title {
             font-size: 11px;
             font-weight: 700;
             color: var(--zh-subtext);
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            margin-top: 0;
+            margin: 0 0 10px 0;
+        }
+
+        /* Token Box */
+        .token-card {
+            background-color: var(--zh-card-bg);
+            border: 1px solid var(--zh-border);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 28px;
         }
         .input-group {
             display: flex;
             gap: 8px;
+            margin-top: 8px;
         }
         input {
             flex: 1;
             background-color: var(--vscode-input-background);
             color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
+            border: 1px solid var(--zh-border);
             border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 13px;
+            padding: 6px 10px;
+            font-size: 12px;
             outline: none;
         }
         input:focus {
             border-color: var(--vscode-focusBorder);
         }
-        .btn {
+        .btn-primary {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
             border: none;
             border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 13px;
+            padding: 6px 12px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
-        .btn:hover {
+        .btn-primary:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--zh-border);
-            color: var(--zh-text);
-            width: 100%;
-            margin-top: 12px;
-            padding: 12px;
-        }
-        .btn-outline:hover {
-            border-color: var(--zh-subtext);
-            background-color: var(--vscode-list-hoverBackground);
-        }
 
-        hr {
-            border: none;
-            border-top: 1px solid var(--zh-border);
-            margin: 20px 0;
+        /* Shared Card Styles */
+        .card {
+            background-color: var(--zh-card-bg);
+            border: 1px solid var(--zh-border);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .card.clickable:hover {
+            background-color: var(--zh-hover);
+            border-color: var(--vscode-focusBorder);
+            cursor: pointer;
         }
 
         /* Quick Actions Grid */
         .actions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 24px;
+            gap: 10px;
+            margin-bottom: 28px;
         }
-        .action-card {
-            background-color: transparent;
+        .action-btn {
+            background-color: var(--zh-card-bg);
             border: 1px solid var(--zh-border);
             border-radius: 6px;
-            padding: 12px;
+            padding: 10px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: var(--zh-text);
             transition: all 0.2s;
         }
-        .action-card:hover {
-            background-color: var(--vscode-list-hoverBackground);
-            border-color: var(--zh-subtext);
+        .action-btn:hover {
+            background-color: var(--zh-hover);
+            border-color: var(--vscode-focusBorder);
         }
 
-        /* Workspace Grid */
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        /* Workspace List */
+        .workspace-list {
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
-        .workspace-card {
-            background-color: transparent;
-            border: 1px solid var(--zh-border);
-            border-radius: 8px;
-            padding: 16px;
+        .ws-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
         }
         .ws-title {
             font-size: 13px;
             font-weight: 600;
-            margin: 0 0 6px 0;
+            margin: 0;
         }
         .ws-subtitle {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--zh-subtext);
             margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        }
+        .ws-audit {
+            margin-top: 6px;
+            font-size: 11px;
+            padding: 6px;
+            background: rgba(211, 47, 47, 0.1);
+            color: #ff5252;
+            border-radius: 4px;
+            display: inline-block;
         }
         .dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background-color: var(--zh-subtext);
         }
         .dot.active {
             background-color: #4caf50;
         }
-        .dynamic-stat {
-            display: none;
+
+        /* Hidden dynamic states */
+        .dynamic-stat { display: none; margin-top: 10px; font-size: 11px; color: var(--zh-purple); }
+        .open-btn-container { margin-top: 12px; }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--zh-border);
+            color: var(--zh-text);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-outline:hover {
+            background-color: var(--zh-hover);
         }
 
         ${isFolderOpenHtml}
@@ -329,50 +346,57 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         </div>
         <div class="header-right">
             <span class="time-badge" id="session-time">⏱️ ${sessionTime}</span>
-            <div class="pro-badge">PRO</div>
         </div>
     </div>
 
     <!-- Token Box -->
-    <div class="token-box">
-        <p class="section-title">GITHUB TOKEN</p>
+    <div class="token-card">
+        <p class="section-title">GitHub Token</p>
+        <p style="font-size: 11px; margin:0; color: var(--zh-subtext);">Required for remote features.</p>
         <div class="input-group">
             <input type="password" id="gh-token" placeholder="ghp_..." value="${existingToken}">
-            <button class="btn" id="save-btn">Save</button>
+            <button class="btn-primary" id="save-btn">Save</button>
         </div>
     </div>
 
-    <p class="section-title">QUICK ACTIONS</p>
+    <p class="section-title">Quick Actions</p>
     <div class="actions-grid">
-        <div class="action-card" id="btn-sync">Smart Sync</div>
-        <div class="action-card" id="btn-health">Health Check</div>
-        <div class="action-card" id="btn-security">Audit Secrets</div>
-        <div class="action-card" id="btn-format">Fast Fix</div>
+        <button class="action-btn" id="btn-sync">🌩️ Sync</button>
+        <button class="action-btn" id="btn-health">💚 Health</button>
+        <button class="action-btn" id="btn-security">🛡️ Audit</button>
+        <button class="action-btn" id="btn-format">✨ Fix</button>
     </div>
 
-    <p class="section-title">WORKSPACE</p>
-    <div class="workspace-grid">
+    <p class="section-title">Workspace</p>
+    <div class="workspace-list">
         
         <!-- Health Card -->
-        <div class="workspace-card">
-            <p class="ws-title">Project Health</p>
-            <p class="ws-subtitle">
-                <span class="dot ${hasFolder ? 'active' : ''}"></span>
-                ${healthSubtitle}
-            </p>
-            <div class="dynamic-stat">View metrics in dashboard -></div>
-            <button class="btn btn-outline open-btn" id="open-folder-1">Open Folder</button>
+        <div class="card clickable" id="card-health">
+            <div class="ws-header">
+                <div class="dot ${hasFolder ? 'active' : ''}"></div>
+                <h3 class="ws-title">Project Health</h3>
+            </div>
+            <p class="ws-subtitle">${healthSubtitle}</p>
+            ${auditMsg ? `<div class="ws-audit">${auditMsg}</div>` : ''}
+            
+            <div class="dynamic-stat">View dashboard →</div>
+            <div class="open-btn-container">
+                <button class="btn-outline open-btn">Open Folder</button>
+            </div>
         </div>
 
         <!-- TODO Card -->
-        <div class="workspace-card">
-            <p class="ws-title">TODO Explorer</p>
-            <p class="ws-subtitle">
-                <span class="dot ${hasFolder ? 'active' : ''}"></span>
-                ${todoSubtitle}
-            </p>
-            <div class="dynamic-stat">Check files for tags -></div>
-            <button class="btn btn-outline open-btn" id="open-folder-2">Open Folder</button>
+        <div class="card clickable" id="card-todo">
+            <div class="ws-header">
+                <div class="dot ${hasFolder ? 'active' : ''}"></div>
+                <h3 class="ws-title">TODO Explorer</h3>
+            </div>
+            <p class="ws-subtitle">${todoSubtitle}</p>
+            
+            <div class="dynamic-stat">Check tags →</div>
+            <div class="open-btn-container">
+                <button class="btn-outline open-btn">Open Folder</button>
+            </div>
         </div>
 
     </div>
@@ -394,23 +418,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         const openBtns = document.querySelectorAll('.open-btn');
         openBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 vscode.postMessage({ command: 'openFolder' });
             });
         });
 
-        document.getElementById('btn-sync').addEventListener('click', () => {
-            vscode.postMessage({ command: 'actionSync' });
-        });
-        document.getElementById('btn-health').addEventListener('click', () => {
+        // Trigger dashboard commands when clicking the cards (if folder is open)
+        document.getElementById('card-health').addEventListener('click', () => {
             vscode.postMessage({ command: 'actionHealth' });
         });
-        document.getElementById('btn-security').addEventListener('click', () => {
-            vscode.postMessage({ command: 'actionSecurity' });
+        document.getElementById('card-todo').addEventListener('click', () => {
+            vscode.postMessage({ command: 'actionHealth' }); // Can route to a TODO generic command later
         });
-        document.getElementById('btn-format').addEventListener('click', () => {
-            vscode.postMessage({ command: 'actionFormat' });
-        });
+
+        document.getElementById('btn-sync').addEventListener('click', () => vscode.postMessage({ command: 'actionSync' }));
+        document.getElementById('btn-health').addEventListener('click', () => vscode.postMessage({ command: 'actionHealth' }));
+        document.getElementById('btn-security').addEventListener('click', () => vscode.postMessage({ command: 'actionSecurity' }));
+        document.getElementById('btn-format').addEventListener('click', () => vscode.postMessage({ command: 'actionFormat' }));
     </script>
 </body>
 </html>`;
